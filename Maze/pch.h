@@ -23,6 +23,8 @@ struct Pos
 		Pos ret;
 		ret.y = y + other.y;
 		ret.x = x + other.x;
+
+		return ret;
 	}
 	
 	Pos operator-(Pos& other)
@@ -47,9 +49,9 @@ struct Pos
 enum Dir
 {
 	DIR_UP = 0,
-	DIR_LEFT,
-	DIR_DOWN,
-	DIR_RIGHT,
+	DIR_LEFT = 1,
+	DIR_DOWN = 2,
+	DIR_RIGHT = 3,
 
-	DIR_COUNT
+	DIR_COUNT = 4
 };
