@@ -6,104 +6,131 @@
 #include <queue>
 using namespace std;
 
-//배열로 구현
-template<typename T>
-class ArrayQueue
+void CreateGraph_1()
 {
-public:
-	ArrayQueue()
+	struct Node
 	{
-		//_container.resize(100);
-	}
+		Node* prev;
+		Node* next;
+		int Data;
+	};
 
-	void push(const T& value)
+	struct Vertex
 	{
-		if (_size == _container.size())
+		vector<Vertex*> edges;
+
+	};
+
+	vector<Vertex> v;
+	v.resize(6);
+
+	v[0].edges.push_back(&v[1]);
+	v[0].edges.push_back(&v[3]);
+	v[1].edges.push_back(&v[0]);
+	v[1].edges.push_back(&v[2]);
+	v[1].edges.push_back(&v[3]);
+	v[3].edges.push_back(&v[4]);
+	v[5].edges.push_back(&v[4]);
+
+	//Q) 0번과 3번 정점이 연결되어 있나요?
+	bool connected = false;
+	for (Vertex* edge : v[0].edges)
+	{
+		if (edge == &v[3])
 		{
-			int newSize = max(1, _size * 2); //max 함수 = 둘 중 더 큰 수를 리턴해준다. ( 0이 나오는 걸 방지하기 위하여)
-			vector<T> newData;
-			newData.resize(newSize);
-
-			for (int i = 0; i < _size; ++i)
-			{
-				int index = (_front + i) % _container.size();
-				newData[i] = _container[index];
-			}
-
-			_container.swap(newData);
-			_front = 0;
-			_back = _size;
+			connected = true;
+			break;
 		}
-
-		_container[_back] = value;
-		_back = (_back + 1) % _container.size();
-		_size++; //데이터의 갯수를 의미
 	}
+}
 
-	void pop()
-	{
-		_front = (_front + 1) % _container.size();
-		_size--;
-	}
-
-	T& front()
-	{
-		return _container[_front];
-	}
-
-	bool empty() { return _size == 0; }
-	int size() { return _size; }
-
-private:
-	vector<T> _container;
-
-	int _front = 0;
-	int _back = 0;
-	int _size = 0;
-};
-
-//리스트로 구현
-template<typename T>
-class ListQueue
+void CreateGraph_2()
 {
-public:
-	void push(const T& value)
+	struct Vertex
 	{
-		_container.push_back(value);
-	}
 
-	void pop()
+	};
+
+	vector<Vertex> v;
+	v.resize(6);
+
+	// 연결된 목록을 따로 관리
+	// adjacent[n] -> n번째 정점과 연결된 정점 목록
+	vector<vector<int>> adjacent(6);
+
+	adjacent[0] = { 1,3 };
+	adjacent[1] = { 0,2,3 };
+	adjacent[3] = { 4 };
+	adjacent[5] = { 4 };
+
+	//Q) 0번과 3번 정점이 연결되어 있나요?
+	bool connected = false;
+	for (int vertex : adjacent[0])
 	{
-		_container.pop_front();
+		if (vertex == 3)
+		{
+			connected = true;
+			break;
+		}
 	}
+}
 
-	T& front()
+void CreateGraph_3()
+{
+	struct Vertex
 	{
-		return _container.front();
-	}
 
-	bool empty() { return _container.empty(); }
-	int size() { return _container.size(); }
+	};
 
-private:
-	list<T> _container;
-};
+	vector<Vertex> v;
+	v.resize(6);
 
+	// 연결된 목록을 따로 관리
+	// 
+	// [X][O][X][O][X][X]
+	// [O][X][O][O][X][X]
+	// [X][X][X][X][X][X]
+	// [X][X][X][X][O][X]
+	// [X][X][X][X][X][X]
+	// [X][X][X][X][O][X]
+
+	// adjacent[from][to]
+	// 행렬을 이용한 그래프 표현 (2차원 배열)
+	// 메모리 소모가 심하지만, 빠른 접근이 가능하다.
+	// (간선이 많은 경우 이점이 있다)
+	vector<vector<bool>> adjacent(6, vector<bool>(6, false));
+	adjacent[0][1] = true;
+	adjacent[0][3] = true;
+	adjacent[1][0] = true;
+	adjacent[1][2] = true;
+	adjacent[1][3] = true;
+	adjacent[3][4] = true;
+	adjacent[5][4] = true;
+
+
+	//Q) 0번과 3번 정점이 연결되어 있나요?
+	bool connected = adjacent[0][3];
+
+	//가중치 그래프
+	vector<vector<int>> adjacent2 =
+	{
+		vector<int> {-1, 15, -1, 35, -1, -1},
+		vector<int> {15, -1, +5, 10, -1, -1},
+		vector<int> {-1, -1, -1, -1, -1, -1},
+		vector<int> {-1, -1, -1, -1, +5, -1},
+		vector<int> {-1, -1, -1, -1, -1, -1},
+		vector<int> {-1, -1, -1, -1, +5, -1},
+	};
+
+	//연결 확인
+	adjacent2[0][3] != -1;
+
+	//가중치 확인
+	adjacent2[0][3];
+}
 
 int main()
 {
-	ArrayQueue<int> q;
-
-	for (int i = 0; i < 100; ++i)
-		q.push(i);
-
-	while (q.empty() == false)
-	{
-		int value = q.front();
-		q.pop();
-		cout << value << endl;
-	}
-
-	int size = q.size();
-	cout << size << endl;
+	CreateGraph_1();
+	CreateGraph_2();
 }
