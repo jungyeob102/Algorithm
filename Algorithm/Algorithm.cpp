@@ -6,131 +6,104 @@
 #include <queue>
 using namespace std;
 
-void CreateGraph_1()
+struct Vertex
 {
-	struct Node
+
+};
+
+vector<Vertex> vertices;
+vector<vector<int>> adjacent; //인접 행렬로
+
+void CreateGraph()
+{
+	vertices.resize(6);
+	adjacent = vector<vector<int>>(6, vector<int>(6, -1));
+	// -1 -1 -1 -1 -1 -1
+	// -1 -1 -1 -1 -1 -1
+	// -1 -1 -1 -1 -1 -1
+	// -1 -1 -1 -1 -1 -1
+	// -1 -1 -1 -1 -1 -1
+	// -1 -1 -1 -1 -1 -1
+
+	adjacent[0][1] = 15;
+	adjacent[0][3] = 35;
+
+	adjacent[1][0] = 15;
+	adjacent[1][2] = 5;
+	adjacent[1][3] = 10;
+
+	adjacent[3][4] = 5;
+	adjacent[5][4] = 5;
+
+}
+
+void Dijikstra(int here)
+{
+	struct VertexCost
 	{
-		Node* prev;
-		Node* next;
-		int Data;
+		int vertex;
+		int cost;
 	};
 
-	struct Vertex
+	list<VertexCost> discovered; //발견 목록
+	vector<int> best(6, INT32_MAX); // 각 정점별로 지금까지 발견한 최소 거리
+	vector<int> parent(6, -1);
+
+	discovered.push_back(VertexCost{ here,0 });
+	best[here] = 0;
+	parent[here] = here;
+
+	while (discovered.empty() == false)
 	{
-		vector<Vertex*> edges;
+		// 제일 코스트가 낮은 후보를 찾는다.
+		list<VertexCost>::iterator bestIt;
+		int bestCost = INT32_MAX;
 
-	};
-
-	vector<Vertex> v;
-	v.resize(6);
-
-	v[0].edges.push_back(&v[1]);
-	v[0].edges.push_back(&v[3]);
-	v[1].edges.push_back(&v[0]);
-	v[1].edges.push_back(&v[2]);
-	v[1].edges.push_back(&v[3]);
-	v[3].edges.push_back(&v[4]);
-	v[5].edges.push_back(&v[4]);
-
-	//Q) 0번과 3번 정점이 연결되어 있나요?
-	bool connected = false;
-	for (Vertex* edge : v[0].edges)
-	{
-		if (edge == &v[3])
+		for (auto it = discovered.begin(); it != discovered.end(); it++)
 		{
-			connected = true;
-			break;
+			const int vertex = it->vertex;
+			const int cost = it->cost;
+
+			if (cost < bestCost)
+			{
+				bestCost = cost;
+				bestIt = it;
+			}
 		}
+
+		int cost = bestIt->cost;
+		here = bestIt->vertex;
+		discovered.erase(bestIt);
+
+		//더 짧은 경로를 뒤늦게 찾았다면 스킵
+		if (best[here] < cost)
+			continue;
+
+		//방문
+		for (int there = 0; there < 6; there++)
+		{
+			//연결되지 않았으면 스킵
+			if (adjacent[here][there] == -1)
+				continue;
+
+			// 더 좋은 경로를 과거에 찾앗으면 스킵
+			int nextCost = best[here] + adjacent[here][there];
+			if (nextCost >= best[there])
+				continue;
+
+			discovered.push_back(VertexCost{ there,nextCost });
+			best[there] = nextCost;
+			parent[there] = here;
+
+		}
+
 	}
 }
 
-void CreateGraph_2()
-{
-	struct Vertex
-	{
-
-	};
-
-	vector<Vertex> v;
-	v.resize(6);
-
-	// 연결된 목록을 따로 관리
-	// adjacent[n] -> n번째 정점과 연결된 정점 목록
-	vector<vector<int>> adjacent(6);
-
-	adjacent[0] = { 1,3 };
-	adjacent[1] = { 0,2,3 };
-	adjacent[3] = { 4 };
-	adjacent[5] = { 4 };
-
-	//Q) 0번과 3번 정점이 연결되어 있나요?
-	bool connected = false;
-	for (int vertex : adjacent[0])
-	{
-		if (vertex == 3)
-		{
-			connected = true;
-			break;
-		}
-	}
-}
-
-void CreateGraph_3()
-{
-	struct Vertex
-	{
-
-	};
-
-	vector<Vertex> v;
-	v.resize(6);
-
-	// 연결된 목록을 따로 관리
-	// 
-	// [X][O][X][O][X][X]
-	// [O][X][O][O][X][X]
-	// [X][X][X][X][X][X]
-	// [X][X][X][X][O][X]
-	// [X][X][X][X][X][X]
-	// [X][X][X][X][O][X]
-
-	// adjacent[from][to]
-	// 행렬을 이용한 그래프 표현 (2차원 배열)
-	// 메모리 소모가 심하지만, 빠른 접근이 가능하다.
-	// (간선이 많은 경우 이점이 있다)
-	vector<vector<bool>> adjacent(6, vector<bool>(6, false));
-	adjacent[0][1] = true;
-	adjacent[0][3] = true;
-	adjacent[1][0] = true;
-	adjacent[1][2] = true;
-	adjacent[1][3] = true;
-	adjacent[3][4] = true;
-	adjacent[5][4] = true;
-
-
-	//Q) 0번과 3번 정점이 연결되어 있나요?
-	bool connected = adjacent[0][3];
-
-	//가중치 그래프
-	vector<vector<int>> adjacent2 =
-	{
-		vector<int> {-1, 15, -1, 35, -1, -1},
-		vector<int> {15, -1, +5, 10, -1, -1},
-		vector<int> {-1, -1, -1, -1, -1, -1},
-		vector<int> {-1, -1, -1, -1, +5, -1},
-		vector<int> {-1, -1, -1, -1, -1, -1},
-		vector<int> {-1, -1, -1, -1, +5, -1},
-	};
-
-	//연결 확인
-	adjacent2[0][3] != -1;
-
-	//가중치 확인
-	adjacent2[0][3];
-}
 
 int main()
 {
-	CreateGraph_1();
-	CreateGraph_2();
+	CreateGraph();
+
+	Dijikstra(0);
 }

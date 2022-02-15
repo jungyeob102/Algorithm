@@ -8,13 +8,41 @@ void Player::Init(Board* board)
 	_pos = board->GetEnterPos();
 	_board = board;
 
+	//RightHand();
+	Bfs();
+
+}
+
+void Player::Update(uint64 deltaTick)
+{
+	if (_pathIndex >= _path.size())
+		return;
+
+	_sumTick += deltaTick;
+	if (_sumTick >= MOVE_TICK)
+	{
+		_sumTick = 0;
+
+		_pos = _path[_pathIndex];
+		_pathIndex++;
+	}
+}
+
+bool Player::CanGo(Pos pos)
+{
+	TileType tileType = _board->GetTileType(pos);
+	return tileType == TileType::EMPTY;
+}
+
+void Player::RightHand()
+{
 	Pos pos = _pos;
 
 	_path.clear();
 	_path.push_back(pos);
 
 	//목적지 도착하기 전에는 계속 실행
-	Pos dest = board->GetExitPos();
+	Pos dest = _board->GetExitPos();
 
 	Pos front[4] =
 	{
@@ -95,26 +123,73 @@ void Player::Init(Board* board)
 
 	std::reverse(path.begin(), path.end());
 	_path = path;
-
 }
 
-void Player::Update(uint64 deltaTick)
+void Player::Bfs()
 {
-	if (_pathIndex >= _path.size())
-		return;
+	Pos pos = _pos;
+	//목적지 도착하기 전에는 계속 실행
+	Pos dest = _board->GetExitPos();
 
-	_sumTick += deltaTick;
-	if (_sumTick >= MOVE_TICK)
+	Pos front[4] =
 	{
-		_sumTick = 0;
+		Pos {-1 , 0},	//UP
+		Pos {0 , -1},	//LEFT
+		Pos {1 , 0},	//DOWN
+		Pos {0 , 1},	//RIGHT
+	};
 
-		_pos = _path[_pathIndex];
-		_pathIndex++;
+	const int32 size = _board->GetSize();
+	vector<vector<bool>> discovered(size, vector<bool>(size, false));
+	
+	map<Pos, Pos> parent;
+
+	queue<Pos> q;
+	q.push(pos);
+	discovered[pos.y][pos.x] = true;
+	parent[pos] = pos;
+
+	while (q.empty() == false)
+	{
+		pos = q.front();
+		q.pop();
+
+		//방문!
+		if (pos == dest)
+			break;
+
+		for (int32 dir = 0; dir < 4; dir++)
+		{
+			Pos nextPos = pos + front[dir];
+			//갈 수 있는 지역인지 체크
+			if (CanGo(nextPos) == false)
+				continue;
+
+			//이미 발견한 지역인지 체크
+			if (discovered[nextPos.y][nextPos.y])
+				continue;
+
+			q.push(nextPos);
+			discovered[nextPos.y][nextPos.x] = true;
+			parent[nextPos] = pos;
+		}
+		
 	}
-}
 
-bool Player::CanGo(Pos pos)
-{
-	TileType tileType = _board->GetTileType(pos);
-	return tileType == TileType::EMPTY;
+	_path.clear();
+
+	//거꾸로 조립
+	pos = dest;
+	while (true)
+	{
+		_path.push_back(pos);
+
+		//시작점은 자신이 곧 부모이다.
+		if (pos == parent[pos])
+			break;
+
+		pos = parent[pos];
+	}
+
+	std::reverse(_path.begin(), _path.end());
 }
